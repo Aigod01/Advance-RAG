@@ -1,0 +1,27 @@
+# Secrets - never commit real credentials
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+
+# Data & local storage (seeded DB, vector store cache, learned memory)
+data/qdrant_storage/
+data/*.db
+data/strategy_memory.json
+data/feedback_memory.json
+data/test_strategy*.json
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

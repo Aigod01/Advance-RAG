@@ -1,0 +1,14 @@
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.git/
+.gitignore
+.pytest_cache/
+tests/
+pytest.ini
+frontend/node_modules/
+frontend/dist/
+data/qdrant_storage/
+*.md
+.env.example
+_to_delete/
