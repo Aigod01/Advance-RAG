@@ -36,10 +36,14 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
 
-    # Embedding & Reranker
+    # Embedding & Reranker (served via the Hugging Face Inference API --
+    # see backend/rag/embeddings.py and backend/rag/reranker.py. No local
+    # model weights, no torch. Falls back to a deterministic/heuristic local
+    # implementation if HF_TOKEN isn't set.)
+    HF_TOKEN: Optional[str] = None
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
     EMBEDDING_DIM: int = 384
-    RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    RERANKER_MODEL: str = "BAAI/bge-reranker-base"
 
     # Database
     DATABASE_URL: str = "sqlite:///./data/enterprise_sales.db"

@@ -12,15 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy requirements
 COPY requirements.txt .
 
-# Install the CPU-only PyTorch build first. sentence-transformers only needs
-# torch for two small embedding/reranker models running on CPU here, but
-# without this, plain `pip install torch` on Linux pulls the full CUDA/GPU
-# stack (cuBLAS, cuDNN, cuSPARSE, NCCL, triton, ...) -- over 1.5GB of
-# completely unused downloads that make the build take 40+ minutes and can
-# fill up Docker Desktop's disk allocation. Installing the CPU wheel first
-# means the later `pip install -r requirements.txt` sees torch's requirement
-# already satisfied and skips it.
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+# Embeddings and reranking now go through the Hugging Face Inference API
+# (see backend/rag/embeddings.py / reranker.py) instead of loading
+# sentence-transformers/torch locally, so there's no heavy ML framework to
+# install here anymore -- this is now a plain, fast pip install.
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code and data
@@ -34,7 +29,13 @@ ENV HOST=0.0.0.0
 ENV PORT=8000
 ENV PYTHONUNBUFFERED=1
 
+# Shell form (not a JSON array) so $PORT is expanded at container start.
+# Locally / in docker-compose, PORT=8000 (set above, and again in
+# docker-compose.yml) keeps this identical to before. On a host that injects
+# its own PORT at runtime (Render, Cloud Run, etc.), the app now binds to
+# whatever port that platform actually routes traffic to, instead of always
+# listening on a hardcoded 8000 while the platform expects something else.
 HEALTHCHECK --interval=15s --timeout=10s --retries=5 --start-period=45s \
-    CMD curl -f http://localhost:8000/api/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/api/health || exit 1
 
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}
